@@ -12,7 +12,7 @@ RUN npm install
 COPY . .
 
 # Expose Angular dev port
-EXPOSE 4201
+EXPOSE 4200
 
 # Start dev server
 CMD ["npx", "ng", "serve", "--host", "0.0.0.0"]
