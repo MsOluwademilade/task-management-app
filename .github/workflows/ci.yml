@@ -20,9 +20,10 @@ jobs:
       - name: Set up Docker Compose
         run: sudo apt-get update && sudo apt-get install -y docker-compose
 
-      - name: Create .env file from GitHub secrets
+      - name: Create backend .env file from GitHub secrets
         run: |
-          cat <<EOF > .env
+          mkdir -p backend
+          cat <<EOF > backend/.env
           PORT=${{ secrets.PORT }}
           MONGO_URI=${{ secrets.MONGO_URI }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
@@ -34,17 +35,16 @@ jobs:
           EOF
 
       - name: Build and run containers
-        run: docker compose --env-file .env up -d --build
+        run: docker compose up -d --build
 
-      - name: Wait for containers to stabilize
+      - name: Wait for services to stabilize
         run: sleep 15
 
-      - name: Check if backend is running
-        run: curl --fail http://localhost:3000 || exit 1
+      - name: Health check - Backend
+        run: curl --fail http://localhost:${{ secrets.PORT }} || exit 1
 
-      - name: Check if frontend is running
+      - name: Health check - Frontend
         run: curl --fail http://localhost:4200 || exit 1
 
       - name: Shut down containers
         run: docker compose down
-
