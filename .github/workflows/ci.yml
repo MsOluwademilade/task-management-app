@@ -41,7 +41,7 @@ jobs:
         run: sleep 15
 
       - name: Health check - Backend
-        run: curl --fail http://localhost:${{ secrets.PORT }} || exit 1
+        run: curl --fail http://localhost:3000 || exit 1
 
       - name: Health check - Frontend
         run: curl --fail http://localhost:4200 || exit 1
