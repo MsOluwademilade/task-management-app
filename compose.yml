@@ -3,15 +3,21 @@ services:
     build: ./backend
     container_name: task-backend
     ports:
-      - '${PORT}:3000'
-    env_file:
-      - ./backend/.env
+      - "${PORT}:3000"
+    environment:
+      - PORT=${PORT}
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - MONGODB_USER=${MONGODB_USER}
+      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+      - MONGODB_DBNAME=${MONGODB_DBNAME}
     restart: always
 
   task-frontend:
     build: ./
     container_name: task-frontend
     ports:
-      - '4200:4200'
+      - "4200:4200"
     restart: always
-

@@ -20,19 +20,21 @@ jobs:
       - name: Set up Docker Compose
         run: sudo apt-get update && sudo apt-get install -y docker-compose
 
-      - name: Inject environment variables into backend/.env
+      - name: Create .env file from GitHub secrets
         run: |
-          echo "PORT=${{ secrets.PORT }}" >> backend/.env
-          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> backend/.env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> backend/.env
-          echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> backend/.env
-          echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> backend/.env
-          echo "MONGODB_USER=${{ secrets.MONGODB_USER }}" >> backend/.env
-          echo "MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}" >> backend/.env
-          echo "MONGODB_DBNAME=${{ secrets.MONGODB_DBNAME }}" >> backend/.env
+          cat <<EOF > .env
+          PORT=${{ secrets.PORT }}
+          MONGO_URI=${{ secrets.MONGO_URI }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          EMAIL_USER=${{ secrets.EMAIL_USER }}
+          EMAIL_PASS=${{ secrets.EMAIL_PASS }}
+          MONGODB_USER=${{ secrets.MONGODB_USER }}
+          MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}
+          MONGODB_DBNAME=${{ secrets.MONGODB_DBNAME }}
+          EOF
 
       - name: Build and run containers
-        run: docker-compose up -d --build
+        run: docker compose --env-file .env up -d --build
 
       - name: Wait for containers to stabilize
         run: sleep 15
@@ -44,5 +46,5 @@ jobs:
         run: curl --fail http://localhost:4200 || exit 1
 
       - name: Shut down containers
-        run: docker-compose down
+        run: docker compose down
 
