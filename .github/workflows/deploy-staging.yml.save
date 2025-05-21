@@ -1,0 +1,42 @@
+name: CD - Deploy to Staging EC2
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Save SSH private key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > ${{ runner.temp }}/ec2_key.pem
+          chmod 600 ${{ runner.temp }}/ec2_key.pem
+
+      - name: SSH and deploy to staging
+        env:
+          HOST: ${{ secrets.EC2_HOST_STAGING }}
+          USERNAME: ${{ secrets.EC2_USER_STAGING }}
+        run: |
+          ssh -i ${{ runner.temp }}/ec2_key.pem -o StrictHostKeyChecking=no $USERNAME@$HOST << EOF
+          cd ~/task-management-app
+          git fetch origin staging
+          git checkout staging
+          git reset --hard origin/staging
+          echo "PORT=${{ secrets.PORT_STAGING }}" > backend/.env
+          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> backend/.env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> backend/.env
+          echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> backend/.env
+          echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> backend/.env
+          echo "MONGODB_USER=${{ secrets.MONGODB_USER }}" >> backend/.env
+          echo "MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}" >> backend/.env
+          echo "MONGODB_DBNAME=${{ secrets.MONGODB_DBNAME }}" >> backend/.env
+          docker compose -f docker-compose.staging.yml down
+          docker compose -f docker-compose.staging.yml build
+          docker compose -f docker-compose.staging.yml up -d
+          EOF
