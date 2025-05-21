@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Docker Compose
+        run: sudo apt-get update && sudo apt-get install -y docker-compose
+
+      - name: Inject environment variables into backend/.env
+        run: |
+          echo "PORT=${{ secrets.PORT }}" >> backend/.env
+          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> backend/.env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> backend/.env
+          echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> backend/.env
+          echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> backend/.env
+          echo "MONGODB_USER=${{ secrets.MONGODB_USER }}" >> backend/.env
+          echo "MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}" >> backend/.env
+          echo "MONGODB_DBNAME=${{ secrets.MONGODB_DBNAME }}" >> backend/.env
+
+      - name: Build and run containers
+        run: docker-compose up -d --build
+
+      - name: Wait for containers to stabilize
+        run: sleep 15
+
+      - name: Check if backend is running
+        run: curl --fail http://localhost:3000 || exit 1
+
+      - name: Check if frontend is running
+        run: curl --fail http://localhost:4200 || exit 1
+
+      - name: Shut down containers
+        run: docker-compose down
+
