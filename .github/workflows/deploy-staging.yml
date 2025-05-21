@@ -24,7 +24,7 @@ jobs:
           USERNAME: ${{ secrets.EC2_USER_STAGING }}
         run: |
           ssh -i ${{ runner.temp }}/ec2_key.pem -o StrictHostKeyChecking=no $USERNAME@$HOST << EOF
-          cd ~/task-management-app
+          cd ~/task-management-app/staging
           git fetch origin staging
           git checkout staging
           git reset --hard origin/staging
@@ -36,7 +36,7 @@ jobs:
           echo "MONGODB_USER=${{ secrets.MONGODB_USER }}" >> backend/.env
           echo "MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}" >> backend/.env
           echo "MONGODB_DBNAME=${{ secrets.MONGODB_DBNAME }}" >> backend/.env
-          docker compose -f docker-compose.staging.yml down
-          docker compose -f docker-compose.staging.yml build
-          docker compose -f docker-compose.staging.yml up -d
+          docker compose -f compose.yml down
+          docker compose -f compose.yml build
+          docker compose -f compose.yml up -d
           EOF
