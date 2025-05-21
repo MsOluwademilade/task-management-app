@@ -1,12 +1,11 @@
 const mongoose = require('mongoose');
-
 require('dotenv').config();
+mongoose.set('strictQuery', false);
+// Use the MONGO_URI directly from environment variables
+const mongoURI = process.env.MONGO_URI;
 
-const dbUser = process.env.MONGODB_USER;
-const dbPassword = process.env.MONGODB_PASSWORD;
-const dbName = process.env.MONGODB_DBNAME || 'tasksdb';
-
-const mongoURI = `mongodb+srv://${dbUser}:${dbPassword}@cluster0.re3ha3x.mongodb.net/${dbName}?retryWrites=true&w=majority`;
+// For debugging
+console.log('Attempting to connect with URI:', mongoURI);
 
 module.exports = async function connectDB() {
     try {
@@ -15,5 +14,9 @@ module.exports = async function connectDB() {
     } catch (error) {
         console.error('MongoDB connection failed');
         console.error(error);
+        // More detailed error logging
+        if (error.name === 'MongooseServerSelectionError') {
+            console.error('Error details:', error.reason);
+        }
     }
 };
